@@ -27,6 +27,7 @@ module HamlToErb
       attrs = {}
       class_parts = []
       id_parts = []
+      splat_parts = []
 
       # Static attributes (already parsed by HAML - includes shorthand classes/ids)
       static&.each do |key, value|
@@ -44,7 +45,9 @@ module HamlToErb
         dyn = dynamic.old || dynamic.new
         if dyn && !dyn.empty?
           parse_dynamic(dyn).each do |attr_str|
-            if attr_str.start_with?("class=")
+            if attr_str.start_with?("<%= tag.attributes")
+              splat_parts << attr_str
+            elsif attr_str.start_with?("class=")
               class_parts << extract_quoted_value(attr_str, "class")
             elsif attr_str.start_with?("id=")
               id_parts << extract_quoted_value(attr_str, "id")
@@ -67,6 +70,7 @@ module HamlToErb
       parts << "class=\"#{escape_parts(class_parts).join(" ")}\"" if class_parts.any?
       parts << "id=\"#{escape_parts(id_parts).join(" ")}\"" if id_parts.any?
       parts.concat(attrs.values)
+      parts.concat(splat_parts)
 
       parts.empty? ? "" : " " + parts.join(" ")
     end
@@ -147,12 +151,11 @@ module HamlToErb
       remaining = hash_str.strip
 
       while remaining && !remaining.empty?
-        # Skip double splat operator (**)
+        # Double splat operator (**) - expand at runtime via tag.attributes
         if remaining.match?(/\A\s*\*\*/)
-          warn "WARNING: Double splat (**) not supported in HAML attributes. " \
-               "This attribute will be skipped. Consider rewriting without **."
           remaining = remaining.sub(/\A\s*\*\*/, "")
-          _, remaining = extract_value(remaining)
+          expr, remaining = extract_value(remaining)
+          attrs << "<%= tag.attributes(#{expr.strip}) %>" if expr
           remaining = remaining&.sub(/\A\s*,\s*/, "")
           next
         end

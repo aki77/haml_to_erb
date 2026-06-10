@@ -64,7 +64,7 @@ Tests use RSpec with a custom `be_valid_erb` matcher that validates output again
 
 ## Known Limitations
 
-- Double splat (`**`) in attributes not supported (warning issued, attribute skipped)
+- Double splat (`**`) in attributes expands to `<%= tag.attributes(...) %>` (requires Rails 5.1+ at runtime)
 - Whitespace removal markers (`>`, `<`) parsed but not applied
 - Old doctypes converted to HTML5
 - Unknown filters (`:markdown`, etc.) output as HTML comments

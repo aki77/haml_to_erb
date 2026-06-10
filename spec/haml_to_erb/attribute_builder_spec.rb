@@ -239,18 +239,29 @@ RSpec.describe HamlToErb::AttributeBuilder do
       end
     end
 
-    context "double splat (unsupported)" do
-      it "skips double splat with warning" do
-        expect { build_dynamic("**options") }
-          .to output(/WARNING.*Double splat.*not supported/i).to_stderr
+    context "double splat (**)" do
+      it "expands double splat via tag.attributes without warning" do
+        result = nil
+        expect { result = build_dynamic("**options") }.not_to output.to_stderr
+        expect(result).to include("<%= tag.attributes(options) %>")
       end
 
       it "preserves other attributes when double splat present" do
-        result = nil
-        expect { result = build_dynamic('alt: "Image", **extra, title: "Title"') }
-          .to output(/WARNING/).to_stderr
+        result = build_dynamic('alt: "Image", **extra, title: "Title"')
         expect(result).to include('alt="Image"')
         expect(result).to include('title="Title"')
+        expect(result).to include("<%= tag.attributes(extra) %>")
+      end
+
+      it "handles multiple double splats without key collision" do
+        result = build_dynamic("**a, **b")
+        expect(result).to include("<%= tag.attributes(a) %>")
+        expect(result).to include("<%= tag.attributes(b) %>")
+      end
+
+      it "handles a compound expression as the splat target" do
+        result = build_dynamic("**local_assigns.except(:id)")
+        expect(result).to include("<%= tag.attributes(local_assigns.except(:id)) %>")
       end
     end
 

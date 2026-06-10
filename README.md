@@ -120,7 +120,7 @@ This produces output that looks like what a human would write, making converted 
 
 ## Known Limitations
 
-- Double splat (`**`) in attributes not supported (warning issued)
+- Double splat (`**`) in attributes expands to `<%= tag.attributes(...) %>` (requires Rails 5.1+ at runtime)
 - Whitespace removal markers (`>`, `<`) parsed but whitespace not removed
 - Old doctypes (`!!! Strict`, `!!! Transitional`) converted to HTML5
 - `:markdown` and other custom filters output as HTML comments
