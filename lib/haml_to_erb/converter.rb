@@ -145,6 +145,9 @@ module HamlToErb
         text.lines.map { |l| "#{ind}#{l.rstrip}\n" }.join
       when "ruby"
         text.lines.map { |l| "#{ind}<% #{l.strip} %>\n" }.join
+      when "preserve"
+        converted = Interpolation.convert(text.chomp).gsub("\n", "&#x000A;")
+        "#{ind}#{converted}\n"
       else
         "#{ind}<!-- Unknown filter: #{name} -->\n#{ind}#{text}\n"
       end

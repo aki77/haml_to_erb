@@ -70,6 +70,22 @@ RSpec.describe HamlToErb do
         expect(convert(haml)).to be_valid_erb
       end
 
+      it "produces valid ERB for double splat attributes" do
+        expect(convert("%div{**options}")).to be_valid_erb
+        expect(convert('%div{alt: "Image", **extra, title: "Title"}')).to be_valid_erb
+        expect(convert("%img{**attrs}")).to be_valid_erb
+        expect(convert('%div{class: "card", **extra}')).to be_valid_erb
+      end
+
+      it "produces valid ERB for the :preserve filter" do
+        haml = <<~HAML
+          :preserve
+            line1
+            line2
+        HAML
+        expect(convert(haml)).to be_valid_erb
+      end
+
       it "produces valid ERB for complex real-world templates" do
         haml = <<~HAML
           !!!

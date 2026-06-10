@@ -327,6 +327,40 @@ RSpec.describe HamlToErb::Converter do
         expect(result).to include("@value")
       end
 
+      it "converts :preserve filter to a single line with &#x000A; entities" do
+        haml = <<~HAML
+          :preserve
+            line1
+            line2
+        HAML
+
+        result = convert(haml)
+        expect(result).to include("line1&#x000A;line2")
+      end
+
+      it "converts interpolation within :preserve filter" do
+        haml = <<~HAML
+          :preserve
+            Hello \#{@name}
+            Bye
+        HAML
+
+        result = convert(haml)
+        expect(result).to include("<%= @name %>")
+        expect(result).to include("&#x000A;Bye")
+      end
+
+      it "handles single-line :preserve filter" do
+        haml = <<~HAML
+          :preserve
+            single line
+        HAML
+
+        result = convert(haml)
+        expect(result).to include("single line")
+        expect(result).not_to include("&#x000A;")
+      end
+
       it "outputs comment for unknown filters" do
         haml = <<~HAML
           :markdown
