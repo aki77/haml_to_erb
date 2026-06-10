@@ -2,18 +2,20 @@
 
 Converts HAML templates to ERB format.
 
+> This is a fork of [kurioscreative/haml_to_erb](https://github.com/kurioscreative/haml_to_erb).
+
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'haml_to_erb'
+gem 'haml_to_erb', github: 'aki77/haml_to_erb', branch: 'dev'
 ```
 
-Or install directly:
+Then run:
 
 ```bash
-gem install haml_to_erb
+bundle install
 ```
 
 ## Usage
