@@ -561,6 +561,28 @@ RSpec.describe HamlToErb::Converter do
       end
     end
 
+    context "multibyte text following interpolation" do
+      it "preserves multibyte text after interpolation at end of tag" do
+        result = convert('%h1 #{name}の一覧')
+        expect(result).to include('<h1><%= name %>の一覧</h1>')
+      end
+
+      it "preserves multibyte text when interpolation is mid-line" do
+        result = convert('%span (番号: #{id})')
+        expect(result).to include('<span>(番号: <%= id %>)</span>')
+      end
+
+      it "preserves multibyte text with multiple interpolations" do
+        result = convert('%p #{a} と #{b} の合計')
+        expect(result).to include('<p><%= a %> と <%= b %> の合計</p>')
+      end
+
+      it "preserves escaped double quotes around interpolation" do
+        result = convert('%p say "hello" #{x}')
+        expect(result).to include('<p>say "hello" <%= x %></p>')
+      end
+    end
+
     context "object reference with prefix" do
       it "converts object reference with custom prefix" do
         result = convert("%tr[@item, :product]")

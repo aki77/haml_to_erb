@@ -89,12 +89,9 @@ module HamlToErb
       if node.children.any?
         "#{ind}<%= #{code} %>\n" + emit_children(node, depth + 1) + "#{ind}<% end %>\n"
       elsif code.start_with?('"') && code.end_with?('"') && code.include?('#{')
-        # String literal with interpolation - convert to text + ERB
-        # Only handles \" and \\. Complex escape sequences (\n, \t, \u{...}) are
-        # passed through literally — a known limitation (see CLAUDE.md).
-        inner = code[1..-2]
-        unescaped = inner.gsub('\"', '"').gsub("\\\\", "\\")
-        "#{ind}#{Interpolation.convert(unescaped)}\n"
+        # String literal with interpolation - convert to text + ERB.
+        # undump fully decodes Ruby string escapes including \uXXXX (multibyte text).
+        "#{ind}#{Interpolation.convert(unescape_string_literal(code))}\n"
       else
         "#{ind}<%= #{code} %>\n"
       end
@@ -184,17 +181,23 @@ module HamlToErb
       val = tag_data[:value].to_s
       if tag_data[:parse]
         if val.start_with?('"') && val.end_with?('"') && val.include?('#{')
-          # Only handles \" and \\. Complex escape sequences (\n, \t, \u{...}) are
-          # passed through literally — a known limitation (see CLAUDE.md).
-          inner = val[1..-2]
-          unescaped = inner.gsub('\"', '"').gsub("\\\\", "\\")
-          Interpolation.convert(unescaped)
+          Interpolation.convert(unescape_string_literal(val))
         else
           "<%= #{val} %>"
         end
       else
         Interpolation.convert(val)
       end
+    end
+
+    # Decode a Ruby double-quoted string literal (as produced by Haml::Parser for
+    # interpolated tag/script values). undump handles all escape sequences,
+    # including \uXXXX for multibyte text. Falls back to the legacy \" / \\
+    # handling if undump rejects the input.
+    def unescape_string_literal(literal)
+      literal.undump
+    rescue RuntimeError
+      literal[1..-2].gsub('\"', '"').gsub("\\\\", "\\")
     end
 
     def indent(depth)
